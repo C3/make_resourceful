@@ -237,7 +237,12 @@ module Resourceful
         block.call response
 
         actions.each do |action|
-          @responses[action.to_sym] = response.formats
+          action = action.to_sym
+          response.formats.each do |(format, proc)|
+            @responses[action] ||= []
+            @responses[action].delete_if {|(f, p)| f == format }
+            @responses[action] << [format, proc]
+          end
         end
       end
     end

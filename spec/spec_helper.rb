@@ -15,9 +15,15 @@ module MetaClass
   end
 end
 
-def should_be_called(&block)
-  pstub = stub
+def should_be_called(name = nil, &block)
+  pstub = stub(name)
   pstub.expects(:call).instance_eval(&(block || proc {}))
+  proc { |*args| pstub.call(*args) }
+end
+
+def should_never_be_called(name = nil)
+  pstub = stub(name)
+  pstub.expects(:call).never
   proc { |*args| pstub.call(*args) }
 end
 
