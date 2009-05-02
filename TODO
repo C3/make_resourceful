@@ -1,0 +1,15 @@
+== Specs
+* 25 failures 
+  10 urls_spec
+  15 integration_spec
+
+== Function
+* Accumulate responders, rather than overwriting, ie.
+  response_for(:edit) do |format|
+    format.js
+  end
+  response_for(:new, :edit)
+    format.html
+    # keeps format.js
+  end
+  
