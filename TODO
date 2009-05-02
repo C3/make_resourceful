@@ -13,3 +13,4 @@
     # keeps format.js
   end
   
+* Resourceful::Default::Accessors.current_object_name

@@ -65,11 +65,11 @@ module Resourceful
       # This returns the path for the parent object.
       # 
       def parent_path(object = parent_object)
-        instance_route(parent_class_name.underscore, object, 'path')
+        parent_route(object, 'path')
       end
       # Same as parent_path, but with the protocol and hostname.
       def parent_url(object = parent_object)
-        instance_route(parent_class_name.underscore, object, 'url')
+        parent_route(object, 'url')
       end
 
       # This prefix is added to the Rails URL helper names
@@ -103,35 +103,50 @@ module Resourceful
 
       private
 
+      # FIXME: URLs fail when parent_object != object.parent
+      # The object on which to base the routes is passed in rather 
+      # than using current_object, however we use the parent_object
+      # for the parent.
+
       def object_route(object, type)
-        instance_route(current_model_name.underscore, object, type)
+        # favour nested route if available
+        nested_route(current_model_name.underscore, object, type)
       end
 
       def nested_object_route(object, type)
-        return object_route(object, type) unless parent?
-        send("#{url_helper_prefix}#{parent_class_name.underscore}_#{current_model_name.underscore}_#{type}", parent_object, object)
-      end
-
-      def edit_object_route(object, type)
-        instance_route(current_model_name.underscore, object, type, "edit")
+        nested_route(current_model_name.underscore, object, type)
       end
 
       def objects_route(type)
         collection_route(current_model_name.pluralize.underscore, type)
+      end
+      
+      def edit_object_route(object, type)
+        nested_route(current_model_name.underscore, object, type, "edit")
       end
 
       def new_object_route(type)
         collection_route(current_model_name.underscore, type, "new")
       end
 
-      def instance_route(name, object, type, action = nil)
-        send("#{action ? action + '_' : ''}#{url_helper_prefix}#{collection_url_prefix}#{name}_#{type}", *(parent? ? [parent_object, object] : [object]))
+      def parent_route(parent, type)
+        direct_route(parent_name, parent, type)
       end
 
-      def collection_route(name, type, action = nil)
-        send("#{action ? action + '_' : ''}#{url_helper_prefix}#{collection_url_prefix}#{name}_#{type}",
-             *(parent? ? [parent_object] : []))
+      def direct_route(name, object, type, action = nil)
+        send("#{action ? action + '_' : ''}#{url_helper_prefix}#{name}_#{type}", object)
       end
+
+      def nested_route(name, object, type, action = nil)
+        return direct_route(name, object, type, action) unless parent?
+        send("#{action ? action + '_' : ''}#{url_helper_prefix}#{collection_url_prefix}#{name}_#{type}", parent_object, object)
+      end
+      
+      def collection_route(name, type, action = nil)
+        send("#{action ? action + '_' : ''}#{url_helper_prefix}#{collection_url_prefix}#{name}_#{type}", 
+          *(parent? ? [parent_object] : []))
+      end
+      
     end
   end
 end
