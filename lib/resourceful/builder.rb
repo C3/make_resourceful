@@ -236,12 +236,16 @@ module Resourceful
         response = Response.new
         block.call response
 
+
         actions.each do |action|
-          action = action.to_sym
+          action_sym = action.to_sym
           response.formats.each do |(format, proc)|
-            @responses[action] ||= []
-            @responses[action].delete_if {|(f, p)| f == format }
-            @responses[action] << [format, proc]
+            @responses[action_sym] ||= []
+            if existing = @responses[action_sym].find { |(f,p)| f == format }
+              existing[1] = proc
+            else
+              @responses[action_sym] << [format, proc]
+            end
           end
         end
       end
